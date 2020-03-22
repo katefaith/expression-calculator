@@ -21,10 +21,7 @@ function expressionCalculator(expr) {
                 operators.push(token)
             } else if (token === ")") { // если закрывающая скобка
                 while (operators[operators.length - 1] != '(') {
-                    let operand2 = numbers.pop()
-                    let operand1 = numbers.pop()
-                    let operator = operators.pop()
-                    numbers.push(executeOperation(operand1, operand2, operator))
+                    numbers.push(executeOperation(numbers, operators))
                 }
                 operators.pop()
             } else if (!operators.length) { // если стек пуст, то кладем в стек
@@ -33,10 +30,7 @@ function expressionCalculator(expr) {
                 operators.push(token)
             } else { // иначе выполняем предыдущие операции, пока не встретим оператор с большим или равным приоритетом
                 do {
-                    let operand2 = numbers.pop()
-                    let operand1 = numbers.pop()
-                    let operator = operators.pop()
-                    numbers.push(executeOperation(operand1, operand2, operator))
+                    numbers.push(executeOperation(numbers, operators))
                 } while (priorities[operators[operators.length - 1]] >= priorities[token])
                 operators.push(token)
             }
@@ -44,10 +38,7 @@ function expressionCalculator(expr) {
     });
 
     while (operators.length) { // вычисляем то, что осталось в стеке
-        let operand2 = numbers.pop()
-        let operand1 = numbers.pop()
-        let operator = operators.pop()
-        numbers.push(executeOperation(operand1, operand2, operator))
+        numbers.push(executeOperation(numbers, operators))
     }
 
     return numbers.pop()
@@ -74,7 +65,11 @@ function parseExpr(expr) {
     return parsedExpr
 }
 
-function executeOperation(operand1, operand2, operator) {
+function executeOperation(numbers, operators) {
+    const operand2 = numbers.pop(),
+          operand1 = numbers.pop(),
+          operator = operators.pop()
+
     switch (operator) {
         case '+':
             return operand1 + operand2
