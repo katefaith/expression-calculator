@@ -12,19 +12,24 @@ function expressionCalculator(expr) {
         throw Error('ExpressionError: Brackets must be paired')
     }
 
-    // !!! парсинг строки сделать
-    expr = expr.trim().split(' ')
-    expr = expr.map(token => {
-        return (isNaN(+token)) ? token : +token
-    })
-
+    expr = parseExpr(expr)
     expr.forEach(token => {
         if (typeof token === 'number') { // если число, то кладем его в стек
             numbers.push(Number(token))
         } else { // если оператор или скобка
-            if (!operators.length) { // если стек пуст, то кладем в стек
+            if (token === "(") { // если открывающая скобка, то кладем ее в стек
                 operators.push(token)
-            } else if (priorities[token] > priorities[operators[operators.length - 1]]) { // если вверху стека оператор с меньшим приоритетом, то кладем в стек
+            } else if (token === ")") { // если закрывающая скобка
+                while (operators[operators.length - 1] != '(') {
+                    let operand2 = numbers.pop()
+                    let operand1 = numbers.pop()
+                    let operator = operators.pop()
+                    numbers.push(executeOperation(operand1, operand2, operator))
+                }
+                operators.pop()
+            } else if (!operators.length) { // если стек пуст, то кладем в стек
+                operators.push(token)
+            } else if (priorities[token] > priorities[operators[operators.length - 1]] || operators[operators.length - 1] === '(') { // если вверху стека оператор с меньшим приоритетом или открывающая скобка, то кладем в стек
                 operators.push(token)
             } else { // иначе выполняем предыдущие операции, пока не встретим оператор с большим или равным приоритетом
                 do {
@@ -46,6 +51,27 @@ function expressionCalculator(expr) {
     }
 
     return numbers.pop()
+}
+
+function parseExpr(expr) {
+    let parsedExpr = [],
+        number = ''
+    const operands = '+-*/()'
+
+    for (let i = 0; i < expr.length; i++) {
+        if (operands.indexOf(expr[i]) >= 0) {
+            parsedExpr.push(expr[i])
+        }
+        if (expr[i] >= '0' && expr[i] <= '9') {
+            number += expr[i]
+            if (!(expr[i + 1] >= '0' && expr[i + 1] <= '9')) {
+                parsedExpr.push(+number)
+                number = ''
+            }
+        }
+    }
+
+    return parsedExpr
 }
 
 function executeOperation(operand1, operand2, operator) {
